@@ -59,7 +59,13 @@ img.icons {
 		<option value="1.9">Epic</option>
 		<option value="2.5">Legendary</option>
 	</select>
-
+	
+	<br/>
+	<label for="drainOfLabs">Science pack drain:</label>
+	<select id="drainOfLabs" name="drainOfLabs" disabled>
+		<option value="1">100%</option>
+		<option value="2">50%</option>
+	</select>
 </fieldset>
 
 <fieldset>
@@ -192,11 +198,17 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 
 <table>
 	<tr>
-		<td><p id="labsNeeded">Labs needed: 60</p></td>
+		<td><p id="labsNeeded">Labs needed: 60.00</p></td>
 		<td>=</td>
 		<td style="border-bottom: 1px solid black;">
 			<label for="packsPerMinute">Packs per minute:</label>
 				<input type="number" id="packsPerMinute" name="packsPerMinute" min="0" value="60">
+		</td>
+		<td>*</td>
+		<td style="border-bottom: 1px solid black;">
+			<p>
+				<span id="sciencePackDrain">Science pack drain: 1</span>
+			</p>
 		</td>
 		<td>*</td>
 		<td style="border-bottom: 1px solid black;">
@@ -210,6 +222,12 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 		<td>
 			<label for="seconds">Seconds:</label>
 				<input type="number" id="seconds" name="seconds" min="1" value="60">
+		</td>
+		<td></td>
+		<td style="text-align:center">
+			<p>
+				<span id="sciencePackDrainDenominator">1</span>
+			</p>
 		</td>
 		<td></td>
 		<td>
@@ -478,8 +496,10 @@ let totalLabProductivity;
 document.getElementById("labType").addEventListener("change", function() {
 	if (this.value == "1") {
 		changeMaxValues(2, 12);
+		document.getElementById("drainOfLabs").value = "1";
 	} else {
 		changeMaxValues(4, 16);
+		document.getElementById("drainOfLabs").value = "2";
 	}
 	researchSpeedValue();
 	changeProductivityModuleImage();
@@ -529,6 +549,7 @@ function researchSpeedValue()
 // Variables related to the labs
 let labTypeValue = parseInt(document.getElementById("labType").value);
 let qualityOfLabsValue = parseFloat(document.getElementById("qualityOfLabs").value);
+let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
 
 // Variables related to the technologies
 let techResearchSpeedValue = parseFloat(document.getElementById("techLevelResearchSpeed").value);
@@ -588,6 +609,7 @@ let totalSpeedPenalty;
 // Calculates the total lab productivity from all sources
 	totalLabProductivity = (parseFloat((techLevelResearchProductivityValue * 0.1).toFixed(2)) + parseFloat((numberOfProductivityModulesValue * Math.floor(100*tierOfProductivityModulesValue * qualityOfProductivityModulesValue)).toFixed(2)/100)).toFixed(2);
 
+document.getElementById("sciencePackDrainDenominator").innerHTML = drainOfLabsValue;
 document.getElementById("researchSpeed").innerHTML = "Lab speed: " + totalLabSpeed;
 document.getElementById("researchProductivity").innerHTML = "(1 + Lab productivity: " + totalLabProductivity + " == " + (totalLabProductivity*100).toFixed(0) + "%)";
 
@@ -598,6 +620,7 @@ function calculateLabsNeeded()
 //Calculates the number of labs needed
 {
 // Variables for the determination of the labs needed
+let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
 let researchCycleSecondsValue = parseInt(document.getElementById("researchCycleSeconds").value);
 	researchCycleSecondsValue = researchCycleSecondsValue || 60;
 let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").value);
@@ -605,7 +628,7 @@ let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").val
 let secondsValue = parseInt(document.getElementById("seconds").value);
 	secondsValue = secondsValue || 60;
 let labsNeededValue;
-	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
+	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (1 / drainOfLabsValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
 
 document.getElementById("labsNeeded").innerHTML = "Labs needed: " +labsNeededValue;
 
@@ -620,7 +643,9 @@ function formReset()
 {
 	//Fields
 	document.getElementById("labType").value = "1";
-	document.getElementById("qualityOfLabs"). value = "1";
+	document.getElementById("qualityOfLabs").value = "1";
+	document.getElementById("drainOfLabs").value = "1";
+	
 	//Images
 	document.getElementById("labTypeImage").setAttribute("src", imagesRoot + "research-speed.png");
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + "quality-normal.png");
@@ -670,7 +695,9 @@ function formVanillaLab()
 {
 	//Fields
 	document.getElementById("labType").value = "1";
-	document.getElementById("qualityOfLabs"). value = "1";
+	document.getElementById("qualityOfLabs").value = "1";
+	document.getElementById("drainOfLabs").value = "1";
+	
 	//Images
 	document.getElementById("labTypeImage").setAttribute("src", imagesRoot + "research-speed.png");
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + "quality-normal.png");
@@ -721,7 +748,9 @@ function formVanillaLabQuality()
 {
 	//Fields
 	document.getElementById("labType").value = "1";
-	document.getElementById("qualityOfLabs"). value = "2.5";
+	document.getElementById("qualityOfLabs").value = "2.5";
+	document.getElementById("drainOfLabs").value = "1";
+	
 	//Images
 	document.getElementById("labTypeImage").setAttribute("src", imagesRoot + "research-speed.png");
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + "quality-legendary.png");
@@ -772,7 +801,9 @@ function formSpaceAgeBiolab()
 {
 	//Fields
 	document.getElementById("labType").value = "2";
-	document.getElementById("qualityOfLabs"). value = "1";
+	document.getElementById("qualityOfLabs").value = "1";
+	document.getElementById("drainOfLabs").value = "2";
+	
 	//Images
 	document.getElementById("labTypeImage").setAttribute("src", imagesRoot + "biolab.png");
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + "quality-normal.png");
@@ -825,7 +856,9 @@ function formSpaceAgeBiolabQuality()
 {
 	//Fields
 	document.getElementById("labType").value = "2";
-	document.getElementById("qualityOfLabs"). value = "2.5";
+	document.getElementById("qualityOfLabs").value = "2.5";
+	document.getElementById("drainOfLabs").value = "2";
+	
 	//Images
 	document.getElementById("labTypeImage").setAttribute("src", imagesRoot + "biolab.png");
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + "quality-legendary.png");
