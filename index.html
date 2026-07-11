@@ -8,7 +8,7 @@
 <meta name="author" content="Michel Guenette">
 </head>
 
-<body>
+<body style="background-color:#cccccc;">
 
 <style>
 .selectors {
@@ -65,6 +65,21 @@ img.icons {
 	<select id="drainOfLabs" name="drainOfLabs" disabled>
 		<option value="1">100%</option>
 		<option value="2">50%</option>
+	</select>
+</fieldset>
+
+<fieldset>
+	<legend>Science Pack Quality</legend>
+	<img class="icons" id="qualityOfSciencePacksImage" src="Images/quality-normal.png" />
+	<img class="icons" id="sciencePackImage" src="Images/AllSciencePacks.png" />
+
+	<label for="qualityOfSciencePacks">Quality:</label>
+	<select id="qualityOfSciencePacks" name="qualityOfSciencePacks">
+		<option value="1">Normal</option>
+		<option value="2">Uncommon</option>
+		<option value="3">Rare</option>
+		<option value="4">Epic</option>
+		<option value="6">Legendary</option>
 	</select>
 </fieldset>
 
@@ -212,6 +227,12 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 		</td>
 		<td>*</td>
 		<td style="border-bottom: 1px solid black;">
+			<p>
+				<span id="sciencePackQuality">Science pack quality: 1</span>
+			</p>
+		</td>
+		<td>*</td>
+		<td style="border-bottom: 1px solid black;">
 			<label for="researchCycleSeconds">Research cycle seconds:</label>
 				<input type="number" id="researchCycleSeconds" name="researchCycleSeconds" min="0" value="60">
 		</td>
@@ -229,6 +250,11 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 				<span id="sciencePackDrainDenominator">1</span>
 			</p>
 		</td>
+		<td></td>
+		<td style="text-align:center">
+			<p>
+				<span id="sciencePackQualityDenominator">1</span>
+			</p>
 		<td></td>
 		<td>
 			<p>
@@ -260,6 +286,8 @@ let imageTypePng = ".png";
 document.getElementById("labType").addEventListener("change", changeBeaconImage);
 document.getElementById("labType").addEventListener("change", changeLabTypeImage);
 document.getElementById("qualityOfLabs").addEventListener("change", changeLabQualityImage);
+
+document.getElementById("qualityOfSciencePacks").addEventListener("change", changeSciencePackQualityImage);
 
 document.getElementById("numberOfProductivityModules").addEventListener("input", changeProductivityModuleImage);
 document.getElementById("tierOfProductivityModules").addEventListener("change", changeProductivityModuleImage);
@@ -323,6 +351,27 @@ function changeLabQualityImage()
 	};
 	document.getElementById("qualityOfLabsImage").setAttribute("src", imagesRoot + changeLabQuality);
 }
+
+
+function changeSciencePackQualityImage()
+//Changes the image of the level of quality selected for the science pack.
+{
+	let changeSciencePackQuality;
+	let sciencePackQuality = document.getElementById("qualityOfSciencePacks").value
+	if (sciencePackQuality == 1) {
+		changeSciencePackQuality = "quality-normal.png";
+	} else if (sciencePackQuality == 2) {
+		changeSciencePackQuality = "quality-uncommon.png";
+	} else if (sciencePackQuality == 3) {
+		changeSciencePackQuality = "quality-rare.png";
+	} else if (sciencePackQuality == 4) {
+		changeSciencePackQuality = "quality-epic.png";
+	} else {
+		changeSciencePackQuality = "quality-legendary.png";
+	};
+	document.getElementById("qualityOfSciencePacksImage").setAttribute("src", imagesRoot + changeSciencePackQuality);
+}
+
 
 function numberOfProductivityModulesImage(currentModuleImage)
 //Changes the number of productivity modules to display (or insert into) the lab and the biolab.
@@ -508,6 +557,8 @@ document.getElementById("labType").addEventListener("change", function() {
 // Event listeners for all the form fields
 document.getElementById("qualityOfLabs").addEventListener("change", researchSpeedValue);
 
+document.getElementById("qualityOfSciencePacks").addEventListener("change", researchSpeedValue);
+
 document.getElementById("techLevelResearchSpeed").addEventListener("change", researchSpeedValue);
 document.getElementById("techLevelResearchProductivity").addEventListener("input", researchSpeedValue);
 
@@ -550,6 +601,9 @@ function researchSpeedValue()
 let labTypeValue = parseInt(document.getElementById("labType").value);
 let qualityOfLabsValue = parseFloat(document.getElementById("qualityOfLabs").value);
 let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
+
+// Variables related to the science packs
+let sciencePackQualityValue = parseInt(document.getElementById("qualityOfSciencePacks").value);
 
 // Variables related to the technologies
 let techResearchSpeedValue = parseFloat(document.getElementById("techLevelResearchSpeed").value);
@@ -610,6 +664,7 @@ let totalSpeedPenalty;
 	totalLabProductivity = (parseFloat((techLevelResearchProductivityValue * 0.1).toFixed(2)) + parseFloat((numberOfProductivityModulesValue * Math.floor(100*tierOfProductivityModulesValue * qualityOfProductivityModulesValue)).toFixed(2)/100)).toFixed(2);
 
 document.getElementById("sciencePackDrainDenominator").innerHTML = drainOfLabsValue;
+document.getElementById("sciencePackQualityDenominator").innerHTML = sciencePackQualityValue;
 document.getElementById("researchSpeed").innerHTML = "Lab speed: " + totalLabSpeed;
 document.getElementById("researchProductivity").innerHTML = "(1 + Lab productivity: " + totalLabProductivity + " == " + (totalLabProductivity*100).toFixed(0) + "%)";
 
@@ -621,6 +676,7 @@ function calculateLabsNeeded()
 {
 // Variables for the determination of the labs needed
 let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
+let sciencePackQualityValue = parseInt(document.getElementById("qualityOfSciencePacks").value);
 let researchCycleSecondsValue = parseInt(document.getElementById("researchCycleSeconds").value);
 	researchCycleSecondsValue = researchCycleSecondsValue || 60;
 let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").value);
@@ -628,7 +684,7 @@ let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").val
 let secondsValue = parseInt(document.getElementById("seconds").value);
 	secondsValue = secondsValue || 60;
 let labsNeededValue;
-	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (1 / drainOfLabsValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
+	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (1 / drainOfLabsValue) * (1 / sciencePackQualityValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
 
 document.getElementById("labsNeeded").innerHTML = "Labs needed: " +labsNeededValue;
 
