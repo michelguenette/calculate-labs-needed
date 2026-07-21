@@ -82,6 +82,9 @@ img.icons {
 		<option value="4">Epic</option>
 		<option value="6">Legendary</option>
 	</select>
+	<p id="sciencePackConsumptionRate">
+		Science pack consumption rate to reach 60 SPM: 60.00
+	</p>
 </fieldset>
 
 <fieldset>
@@ -222,18 +225,6 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 		</td>
 		<td>*</td>
 		<td style="border-bottom: 1px solid black;">
-			<p>
-				<span id="sciencePackDrain">Science pack drain: 1</span>
-			</p>
-		</td>
-		<td>*</td>
-		<td style="border-bottom: 1px solid black;">
-			<p>
-				<span id="sciencePackQuality">Science pack quality: 1</span>
-			</p>
-		</td>
-		<td>*</td>
-		<td style="border-bottom: 1px solid black;">
 			<label for="researchCycleSeconds">Research cycle seconds:</label>
 				<input type="number" id="researchCycleSeconds" name="researchCycleSeconds" min="0" value="60">
 		</td>
@@ -245,17 +236,6 @@ Inspired by the layout presented on Factorio Cheat Sheet. -->
 			<label for="seconds">Seconds:</label>
 				<input type="number" id="seconds" name="seconds" min="1" value="60">
 		</td>
-		<td></td>
-		<td style="text-align:center">
-			<p>
-				<span id="sciencePackDrainDenominator">1</span>
-			</p>
-		</td>
-		<td></td>
-		<td style="text-align:center">
-			<p>
-				<span id="sciencePackQualityDenominator">1</span>
-			</p>
 		<td></td>
 		<td>
 			<p>
@@ -373,6 +353,18 @@ function changeSciencePackQualityImage()
 	document.getElementById("qualityOfSciencePacksImage").setAttribute("src", imagesRoot + changeSciencePackQuality);
 }
 
+function calculateSciencePackConsumptionRate()
+//Calculates the consumption rate of science packs against the SPM rate selected by the user.
+{
+	let sciencePackConsumptionRateValue;
+	let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
+	let sciencePackQualityValue = parseInt(document.getElementById("qualityOfSciencePacks").value);
+	let packsPerMinuteValue = document.getElementById("packsPerMinute").value;
+
+	sciencePackConsumptionRateValue = (packsPerMinuteValue / (parseFloat(1 + parseFloat(totalLabProductivity)) * sciencePackQualityValue * drainOfLabsValue)).toFixed(2);
+	
+	document.getElementById("sciencePackConsumptionRate").innerHTML = "Science pack consumption rate to reach " + packsPerMinuteValue + " SPM: " + sciencePackConsumptionRateValue;
+}
 
 function numberOfProductivityModulesImage(currentModuleImage)
 //Changes the number of productivity modules to display (or insert into) the lab and the biolab.
@@ -601,7 +593,6 @@ function researchSpeedValue()
 // Variables related to the labs
 let labTypeValue = parseInt(document.getElementById("labType").value);
 let qualityOfLabsValue = parseFloat(document.getElementById("qualityOfLabs").value);
-let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
 
 // Variables related to the science packs
 let sciencePackQualityValue = parseInt(document.getElementById("qualityOfSciencePacks").value);
@@ -659,13 +650,11 @@ let totalSpeedPenalty;
 	totalSpeedPenalty = (numberOfProductivityModulesValue * speedPenaltyValue).toFixed(2);
 
 // Calculates the total lab speed from all sources
-	totalLabSpeed = ((labTypeValue*(1 + techResearchSpeedValue) * qualityOfLabsValue) * (1 + parseFloat(beaconSpeedValue) + parseFloat(totalSpeedPenalty))).toFixed(2);
+	totalLabSpeed = ((labTypeValue * (1 + techResearchSpeedValue) * qualityOfLabsValue) * (1 + parseFloat(beaconSpeedValue) + parseFloat(totalSpeedPenalty))).toFixed(2);
 
 // Calculates the total lab productivity from all sources
 	totalLabProductivity = (parseFloat((techLevelResearchProductivityValue * 0.1).toFixed(2)) + parseFloat((numberOfProductivityModulesValue * Math.floor(100*tierOfProductivityModulesValue * qualityOfProductivityModulesValue)).toFixed(2)/100)).toFixed(2);
 
-document.getElementById("sciencePackDrainDenominator").innerHTML = drainOfLabsValue;
-document.getElementById("sciencePackQualityDenominator").innerHTML = sciencePackQualityValue;
 document.getElementById("researchSpeed").innerHTML = "Lab speed: " + totalLabSpeed;
 document.getElementById("researchProductivity").innerHTML = "(1 + Lab productivity: " + totalLabProductivity + " == " + (totalLabProductivity*100).toFixed(0) + "%)";
 
@@ -676,8 +665,6 @@ function calculateLabsNeeded()
 //Calculates the number of labs needed
 {
 // Variables for the determination of the labs needed
-let drainOfLabsValue = parseInt(document.getElementById("drainOfLabs").value);
-let sciencePackQualityValue = parseInt(document.getElementById("qualityOfSciencePacks").value);
 let researchCycleSecondsValue = parseInt(document.getElementById("researchCycleSeconds").value);
 	researchCycleSecondsValue = researchCycleSecondsValue || 60;
 let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").value);
@@ -685,8 +672,9 @@ let packsPerMinuteValue = parseInt(document.getElementById("packsPerMinute").val
 let secondsValue = parseInt(document.getElementById("seconds").value);
 	secondsValue = secondsValue || 60;
 let labsNeededValue;
-	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (1 / drainOfLabsValue) * (1 / sciencePackQualityValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
+	labsNeededValue = ((packsPerMinuteValue / secondsValue) * (researchCycleSecondsValue / (parseFloat(totalLabSpeed) * (1 + parseFloat(totalLabProductivity))))).toFixed(2);
 
+calculateSciencePackConsumptionRate();
 document.getElementById("labsNeeded").innerHTML = "Labs needed: " +labsNeededValue;
 
 }
